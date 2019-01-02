@@ -1,10 +1,5 @@
 import tkinter as tk
-import gi
-gi.require_version('Gst', '1.0')
-gi.require_version('GstBase', '1.0')
-gi.require_version('Gtk', '3.0')
-gi.require_version('GstVideo', '1.0')
-from gi.repository import GObject, Gst, GstBase, Gtk, GstVideo
+from src.pipeline import Pipeline
 
 PREVIEW_WIDTH = 1280
 PREVIEW_HEIGHT = 720
@@ -28,32 +23,10 @@ class MainWindow(tk.Frame):
         self.audio_enabled = False
         self.preview_stats_enabled = False
 
-        # button_preview = tk.Button(self, text="Preview", command=lambda:self.action(0))
-        # button_preview.place(x=0, y=0, width=PREVIEW_WIDTH, height=PREVIEW_HEIGHT)
-
-        '''
-        self.player = None
-        self.canvas = tk.Canvas(self.video_panel)
-        self.canvas.pack(fill=tk.BOTH, expand=1)
-
-        self.Instance = vlc.Instance()
-        self.player = self.Instance.media_player_new()
-        '''
-
         self.video_panel = tk.Frame(self, background="black")
         self.video_panel.place(x=0, y=0, width=PREVIEW_WIDTH, height=PREVIEW_HEIGHT)
 
-        Gst.init(None)
-        self.player = Gst.ElementFactory.make("playbin3", "player")
-        fakesink = Gst.ElementFactory.make("fakesink", "novideo")
-        self.player.set_property("video-sink", fakesink)
-
-        self.mwin_id = self.video_panel.winfo_id()
-
-        bus = self.player.get_bus()
-        bus.add_signal_watch()
-        bus.enable_sync_message_emission()
-        bus.connect("sync-message::element", self.on_sync_message)
+        self.pipeline = Pipeline(self.video_panel.winfo_id())
 
         panel_control = tk.Frame(self, width=WINDOW_WIDTH, height=CONTROL_PANEL_HEIGHT)
         panel_control.place(x=0, y=PREVIEW_HEIGHT)
@@ -106,23 +79,7 @@ class MainWindow(tk.Frame):
         # button_stats_toggle.place(relx=0, rely=0.5)
         button_stats_toggle.grid(sticky="WE")
 
-        self.start()
-
-    def start(self):
-        self.player.set_property('video-sink', None)
-        # self.player.set_property("uri", "file:///home/tom/media/in.mkv")
-        self.player.set_property("uri", "rtmp://ystvstrm7.york.ac.uk/test/lol")
-        self.player.set_state(Gst.State.PLAYING)
-
-    def on_sync_message(self, bus, message):
-        message_name = message.get_structure().get_name()
-        print(message_name)
-        # if message_name == "prepare-xwindow-id":
-        if message_name == "prepare-window-handle":
-            imagesink = message.src
-            # print(dir(imagesink))
-            imagesink.set_property("force-aspect-ratio", True)
-            imagesink.set_window_handle(self.mwin_id)
+        self.pipeline.start()
 
     def action(self, number):
         print(number)
