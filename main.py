@@ -11,7 +11,7 @@ root = tk.Tk()
 root.title("RTMP Multiviewer")
 
 root.geometry(str(WINDOW_WIDTH) + "x" + str(WINDOW_HEIGHT))
-root.resizable(0, 0)
+# root.resizable(0, 0)
 
 root.option_add("*Button.Background", "black")
 root.option_add("*Button.Foreground", "white")

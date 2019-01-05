@@ -5,6 +5,8 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('GstVideo', '1.0')
 from gi.repository import GObject, Gst, GstBase, Gtk, GstVideo
 
+from src.video_source import VideoSource
+
 class Pipeline:
     def __init__(self, widget_id):
         self.widget_id = widget_id
@@ -24,6 +26,7 @@ class Pipeline:
         # Video pipeline.
         self.pipeline = Gst.Pipeline.new("player")
 
+        '''
         # URI decode bin, reads file/rtmp.
         self.uri_decode_bin = Gst.ElementFactory.make("uridecodebin", "decodebin")
         # Call decode_src_added when the file has been loaded.
@@ -50,7 +53,7 @@ class Pipeline:
         # Add all objects to pipleine.
         self.pipeline.add(self.uri_decode_bin)
         self.pipeline.add(self.video_convert)
-        self.pipeline.add(self.videoflip)
+        # self.pipeline.add(self.videoflip)
         self.pipeline.add(self.queuevideo)
         self.pipeline.add(self.video_sink)
         self.pipeline.add(self.audio_convert)
@@ -60,13 +63,27 @@ class Pipeline:
         # Link video queue to converter.
         self.queuevideo.link(self.video_convert)
         # Link video converter to video flip.
-        self.video_convert.link(self.videoflip)
+        self.video_convert.link(self.video_sink)
         # Link video flip to video sink.
-        self.videoflip.link(self.video_sink)
+        # self.videoflip.link(self.video_sink)
         # Link audio queue to audio converter.
         self.queueaudio.link(self.audio_convert)
         # Link audio converter to audio sink.
         self.audio_convert.link(self.audio_sink)
+        '''
+
+        # Consumes video.
+        self.video_sink = Gst.ElementFactory.make("autovideosink", "videosink")
+        # Consumes audio.
+        self.audio_sink = Gst.ElementFactory.make("autoaudiosink", "audiosink")
+
+        self.pipeline.add(self.video_sink)  
+        self.pipeline.add(self.audio_sink)
+
+        src = VideoSource(self.pipeline, "", "source")
+
+        src.video_convert.link(self.video_sink)
+        src.audio_convert.link(self.audio_sink)
 
         # Get pipeline bus.
         bus = self.pipeline.get_bus()
@@ -87,7 +104,7 @@ class Pipeline:
         '''
 
         # Load file to play.
-        self.uri_decode_bin.set_property("uri", "file:///home/tom/media/in.mkv")
+        # self.uri_decode_bin.set_property("uri", "file:///home/tom/media/in.mkv")
 
         # Set pipline state as playing.
         self.pipeline.set_state(Gst.State.PLAYING)
@@ -138,8 +155,6 @@ class Pipeline:
 
         # Create representation of our audio capabilities.
         audio_caps = Gst.caps_from_string("audio/x-raw")
-
-        print(element)
 
         # Set audio and video pads.
         if Gst.Caps.is_always_compatible(pad.get_current_caps(), video_caps):
