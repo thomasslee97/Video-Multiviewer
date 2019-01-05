@@ -12,78 +12,70 @@ class Pipeline:
         self.widget_id = widget_id
 
         Gst.init(None)
-        '''
-        self.playbin = Gst.ElementFactory.make("playbin3", "player")
-        self.playbin.set_property("uri", "file:///home/tom/media/in.mkv")
-
-        self.videoflip = Gst.ElementFactory.make("videoflip", "videoflip")
-        self.videoflip.set_property("method", "horizontal-flip")
-        
-        # self.playbin.add(self.videoflip)
-        self.playbin.link()
-        '''
 
         # Video pipeline.
         self.pipeline = Gst.Pipeline.new("player")
 
-        '''
-        # URI decode bin, reads file/rtmp.
-        self.uri_decode_bin = Gst.ElementFactory.make("uridecodebin", "decodebin")
-        # Call decode_src_added when the file has been loaded.
-        self.uri_decode_bin.connect('pad-added', self.decode_src_created)
-
-        # Converts raw video.
-        self.video_convert = Gst.ElementFactory.make("videoconvert", "videoconvert")
-        # Queues video.
-        self.queuevideo = Gst.ElementFactory.make("queue", "queuevideo")
-        # Consumes video.
-        self.video_sink = Gst.ElementFactory.make("autovideosink", "videosink")
-
-        # Flip video horizontally.
-        self.videoflip = Gst.ElementFactory.make("videoflip", "videoflip")
-        self.videoflip.set_property("method", "horizontal-flip")
-
-        # Converts raw audio.
-        self.audio_convert = Gst.ElementFactory.make("audioconvert", "audioconvert")
-        # Queues audio.
-        self.queueaudio = Gst.ElementFactory.make("queue", "queueaudio")
-        # Consumes audio.
-        self.audio_sink = Gst.ElementFactory.make("autoaudiosink", "audiosink")
-        
-        # Add all objects to pipleine.
-        self.pipeline.add(self.uri_decode_bin)
-        self.pipeline.add(self.video_convert)
-        # self.pipeline.add(self.videoflip)
-        self.pipeline.add(self.queuevideo)
-        self.pipeline.add(self.video_sink)
-        self.pipeline.add(self.audio_convert)
-        self.pipeline.add(self.queueaudio)
-        self.pipeline.add(self.audio_sink)
-
-        # Link video queue to converter.
-        self.queuevideo.link(self.video_convert)
-        # Link video converter to video flip.
-        self.video_convert.link(self.video_sink)
-        # Link video flip to video sink.
-        # self.videoflip.link(self.video_sink)
-        # Link audio queue to audio converter.
-        self.queueaudio.link(self.audio_convert)
-        # Link audio converter to audio sink.
-        self.audio_convert.link(self.audio_sink)
-        '''
+        # Video compositor.
+        self.compositor = Gst.ElementFactory.make("compositor", "compositor")
 
         # Consumes video.
         self.video_sink = Gst.ElementFactory.make("autovideosink", "videosink")
         # Consumes audio.
         self.audio_sink = Gst.ElementFactory.make("autoaudiosink", "audiosink")
 
+        self.pipeline.add(self.compositor)
         self.pipeline.add(self.video_sink)  
         self.pipeline.add(self.audio_sink)
 
-        src = VideoSource(self.pipeline, "", "source")
+        # vidsrc = "file:///home/tom/media/AnotherWorldSony4k.webm"
+        vidsrc = "file:///home/tom/media/in.mkv"
+        self.src0 = VideoSource(self.pipeline, vidsrc, "source0")
 
-        src.video_convert.link(self.video_sink)
-        src.audio_convert.link(self.audio_sink)
+        self.comp_sink_0 = self.compositor.get_request_pad("sink_%u")
+        self.comp_sink_0.set_property("width", 320)
+        self.comp_sink_0.set_property("height", 180)
+        self.comp_sink_0.set_property("xpos", 0)
+        self.comp_sink_0.set_property("ypos", 0)
+        self.comp_sink_0.set_property("alpha", 0.5)
+
+        self.src0.video_convert.get_static_pad("src").link(self.comp_sink_0)
+
+        self.src1 = VideoSource(self.pipeline, vidsrc, "source1")
+
+        self.comp_sink_1 = self.compositor.get_request_pad("sink_%u")
+        self.comp_sink_1.set_property("width", 320)
+        self.comp_sink_1.set_property("height", 180)
+        self.comp_sink_1.set_property("xpos", 320)
+        self.comp_sink_1.set_property("ypos", 0)
+        self.comp_sink_1.set_property("alpha", 1.0)
+
+        self.src1.video_convert.get_static_pad("src").link(self.comp_sink_1)
+
+        self.src2 = VideoSource(self.pipeline, vidsrc, "source2")
+
+        self.comp_sink_2 = self.compositor.get_request_pad("sink_%u")
+        self.comp_sink_2.set_property("width", 320)
+        self.comp_sink_2.set_property("height", 180)
+        self.comp_sink_2.set_property("xpos", 0)
+        self.comp_sink_2.set_property("ypos", 180)
+        self.comp_sink_2.set_property("alpha", 1.0)
+
+        self.src2.video_convert.get_static_pad("src").link(self.comp_sink_2)
+
+        self.src3 = VideoSource(self.pipeline, vidsrc, "source3")
+
+        self.comp_sink_3 = self.compositor.get_request_pad("sink_%u")
+        self.comp_sink_3.set_property("width", 320)
+        self.comp_sink_3.set_property("height", 180)
+        self.comp_sink_3.set_property("xpos", 320)
+        self.comp_sink_3.set_property("ypos", 180)
+        self.comp_sink_3.set_property("alpha", 1.0)
+
+        self.src3.video_convert.get_static_pad("src").link(self.comp_sink_3)
+
+        self.compositor.link(self.video_sink)
+        self.src0.audio_convert.link(self.audio_sink)
 
         # Get pipeline bus.
         bus = self.pipeline.get_bus()
@@ -102,9 +94,6 @@ class Pipeline:
         '''Starts the video pipeline.
 
         '''
-
-        # Load file to play.
-        # self.uri_decode_bin.set_property("uri", "file:///home/tom/media/in.mkv")
 
         # Set pipline state as playing.
         self.pipeline.set_state(Gst.State.PLAYING)
@@ -144,20 +133,3 @@ class Pipeline:
         # Print old and new state.
         old, new, pending = message.parse_state_changed()
         print("State change from {0} to {1}".format(Gst.Element.state_get_name(old), Gst.Element.state_get_name(new)))
-
-    def decode_src_created(self, element, pad):
-        '''Called when a decode source is created.
-
-        '''
-
-        # Create representation of our video capabilities.
-        video_caps = Gst.caps_from_string("video/x-raw")
-
-        # Create representation of our audio capabilities.
-        audio_caps = Gst.caps_from_string("audio/x-raw")
-
-        # Set audio and video pads.
-        if Gst.Caps.is_always_compatible(pad.get_current_caps(), video_caps):
-            pad.link(self.queuevideo.get_static_pad("sink"))
-        elif Gst.Caps.is_always_compatible(pad.get_current_caps(), audio_caps):
-            pad.link(self.queueaudio.get_static_pad("sink"))

@@ -34,7 +34,8 @@ class VideoSource:
         self.pipeline.add(self.audio_convert)
         self.pipeline.add(self.queueaudio)
 
-        self.uri_decode_bin.set_property("uri", "file:///home/tom/media/in.mkv")
+        # Set video to play.
+        self.uri_decode_bin.set_property("uri", src)
 
         # Link video queue to converter.
         self.queuevideo.link(self.video_convert)
