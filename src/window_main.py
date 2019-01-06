@@ -1,5 +1,6 @@
 import tkinter as tk
 from src.pipeline import Pipeline
+from src.video_player import VideoPlayer
 
 PREVIEW_WIDTH = 1280
 PREVIEW_HEIGHT = 720
@@ -18,8 +19,11 @@ class MainWindow(tk.Frame):
         self.audio_enabled = False
         self.preview_stats_enabled = False
 
-        self.video_panel = tk.Frame(self, background="black")
-        self.video_panel.place(x=0, y=0, width=PREVIEW_WIDTH, height=PREVIEW_HEIGHT)
+        # self.video_panel = tk.Frame(self, background="black")
+        # self.video_panel.place(x=0, y=0, width=PREVIEW_WIDTH, height=PREVIEW_HEIGHT)
+
+        self.video_panel = VideoPlayer(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT)
+        self.video_panel1 = VideoPlayer(0, 1000, PREVIEW_WIDTH, PREVIEW_HEIGHT)
 
         panel_control = tk.Frame(self, width=WINDOW_WIDTH, height=CONTROL_PANEL_HEIGHT)
         panel_control.place(x=0, y=PREVIEW_HEIGHT)
@@ -39,9 +43,6 @@ class MainWindow(tk.Frame):
 
         button_stats_toggle = tk.Button(panel_control, textvariable=self.preview_stats_text, command=self.toggle_stats)
         button_stats_toggle.grid(sticky="WE")
-
-        self.pipeline = Pipeline(self.video_panel.winfo_id())
-        self.pipeline.start()
 
     def action(self, number):
         print(number)
