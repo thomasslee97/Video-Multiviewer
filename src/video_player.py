@@ -6,25 +6,43 @@ class VideoPlayer(tk.Frame):
     def __init__(self, x, y, width, height):
         tk.Frame.__init__(self)
         self.place(x=x, y=y, width=width, height=height)
-        self.config(background="red")
+        self.config(background="black")
 
         self.multiview = Multiview(width, height)
 
         self.pipeline = Pipeline(self.winfo_id())
-        self.pipeline.start()
 
         self.popup_menu = tk.Menu(self, tearoff=0)
         self.popup_menu.add_command(label="Split Horizontally", command=self.split_horizontally)
         self.popup_menu.add_command(label="Split Vertically", command=self.split_vertically)
 
-        # bind mouse events to window
-        self.bind("<Button-1>", self.buttonPressed)
+        # bind mouse events to windowself.entry_video_input.delete(0, tk.END)
+        self.bind("<Button-1>", self.player_clicked)
 
         self.bind("<Button-3>", self.spilt_menu)
 
-    def buttonPressed(self, event):
+        self.pipeline.start()
+
+        '''
+        self.pipeline.stop()
+
+        self.pipeline.add_video("file:///home/tom/media/in.mkv", 320, 180, 0, 0)
+        self.pipeline.add_video("file:///home/tom/media/in.mkv", 320, 180, 320, 0)
+        self.pipeline.add_video("file:///home/tom/media/in.mkv", 320, 180, 0, 180)
+        self.pipeline.add_video("file:///home/tom/media/in.mkv", 320, 180, 320, 180)
+        
+        self.pipeline.start()
+        '''
+
+    def link_settings_panel(self, panel):
+        self.settings_panel = panel
+
+    def player_clicked(self, event):
         print(event.x, "_", event.y)
-        print(self.multiview.find_tile_at_pos(event.x, event.y))
+        self.select_tile(self.multiview.find_tile_at_pos(event.x, event.y))
+
+    def select_tile(self, tile):
+        self.settings_panel.set_selected_tile(tile)
 
     def spilt_menu(self, event):
         self.selected_x = event.x

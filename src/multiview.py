@@ -14,12 +14,7 @@ class QuadrantNames(Enum):
 
 class Multiview:
     def __init__(self, width, height):
-        tile = Tile()
-        tile.width = width
-        tile.height = height
-        tile.xpos = 0
-        tile.ypos = 0
-        self.tiles = [tile]
+        self.tiles = []
 
     def add_tile(self, tile):
         self.tiles.append(tile)
@@ -35,7 +30,11 @@ class Tile:
         self.height = None
         self.xpos = None
         self.ypos = None
-        self.pad = None
+        self.pad_video = None
+        self.pad_audio = None
+        self.video_source = None
+        self.uri = None
+        self.audio_enabled = False
     
     def coord_in_tile(self, x, y):
         return (x >= self.xpos) and (x <= self.xpos + self.width) and (y >= self.ypos) and (y <= self.ypos + self.height)

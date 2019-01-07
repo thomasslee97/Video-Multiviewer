@@ -1,6 +1,8 @@
 import tkinter as tk
 from src.pipeline import Pipeline
 from src.video_player import VideoPlayer
+from src.settings_panel import SettingsPanel
+from src.multiview import Tile
 
 PREVIEW_WIDTH = 1280
 PREVIEW_HEIGHT = 720
@@ -14,45 +16,21 @@ class MainWindow(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self.parent = parent
-        self.audio_enabled_text = tk.StringVar(value="Enable Audio")
-        self.preview_stats_text = tk.StringVar(value="View Video Stats")
-        self.audio_enabled = False
-        self.preview_stats_enabled = False
-
-        # self.video_panel = tk.Frame(self, background="black")
-        # self.video_panel.place(x=0, y=0, width=PREVIEW_WIDTH, height=PREVIEW_HEIGHT)
 
         self.video_panel = VideoPlayer(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT)
-        self.video_panel1 = VideoPlayer(0, 1000, PREVIEW_WIDTH, PREVIEW_HEIGHT)
+        self.panel_settings = SettingsPanel(0, PREVIEW_HEIGHT, WINDOW_WIDTH, CONTROL_PANEL_HEIGHT)
+        self.video_panel.link_settings_panel(self.panel_settings)
 
-        panel_control = tk.Frame(self, width=WINDOW_WIDTH, height=CONTROL_PANEL_HEIGHT)
-        panel_control.place(x=0, y=PREVIEW_HEIGHT)
-
-        label_video_settings = tk.Label(panel_control, text="Video Settings")
-        label_video_settings.grid(sticky="WE")
-
-        label_video_input = tk.Label(panel_control, text="Video Source")
-        label_video_input.grid(sticky="WE")
-
-        entry_video_input = tk.Entry(panel_control, width=20)
-        entry_video_input.grid(sticky="WE")
-        entry_video_input.insert(0, "-i rtmp://...")
-
-        button_audio_toggle = tk.Button(panel_control, textvariable=self.audio_enabled_text, command=self.toggle_audio)
-        button_audio_toggle.grid(sticky="WE")
-
-        button_stats_toggle = tk.Button(panel_control, textvariable=self.preview_stats_text, command=self.toggle_stats)
-        button_stats_toggle.grid(sticky="WE")
-
-    def action(self, number):
-        print(number)
-
-    def toggle_audio(self):
-        self.audio_enabled = not self.audio_enabled
-        
-        self.audio_enabled_text.set("Disable Audio") if self.audio_enabled else self.audio_enabled_text.set("Enable Audio")
-
-    def toggle_stats(self):
-        self.preview_stats_enabled = not self.preview_stats_enabled
-        
-        self.preview_stats_text.set("Hide Video Stats") if self.preview_stats_enabled else self.preview_stats_text.set("View Video Stats")
+        pad_video, pad_audio, video_source = self.video_panel.pipeline.add_video("", PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 0)
+        tile_root = Tile()
+        tile_root.width = PREVIEW_WIDTH
+        tile_root.height = PREVIEW_HEIGHT
+        tile_root.xpos = 0
+        tile_root.ypos = 0
+        tile_root.pad_video = pad_video
+        tile_root.pad_audio = pad_audio
+        tile_root.video_source = video_source
+        tile_root.uri = None
+        tile_root.audio_enabled = False
+        self.video_panel.multiview.add_tile(tile_root)
+        self.video_panel.select_tile(tile_root)

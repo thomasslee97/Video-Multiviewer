@@ -34,69 +34,13 @@ class Pipeline:
         self.pipeline.add(self.video_sink)  
         self.pipeline.add(self.audio_sink)
 
-        # vidsrc = "file:///home/tom/media/AnotherWorldSony4k.webm"
-
-        vidsrc = "file:///home/tom/media/in.mkv"
-        self.src0 = VideoSource(self.pipeline, vidsrc, "source0")
-
-        self.comp_sink_0 = self.compositor.get_request_pad("sink_%u")
-        self.comp_sink_0.set_property("width", 320)
-        self.comp_sink_0.set_property("height", 180)
-        self.comp_sink_0.set_property("xpos", 0)
-        self.comp_sink_0.set_property("ypos", 0)
-        self.comp_sink_0.set_property("alpha", 0.5)
-
-        self.mixer_sink_0 = self.audio_mixer.get_request_pad("sink_%u")
-
-        self.src0.video_convert.get_static_pad("src").link(self.comp_sink_0)
-        self.src0.audio_convert.get_static_pad("src").link(self.mixer_sink_0)
-
-        self.src1 = VideoSource(self.pipeline, vidsrc, "source1")
-
-        self.comp_sink_1 = self.compositor.get_request_pad("sink_%u")
-        self.comp_sink_1.set_property("width", 320)
-        self.comp_sink_1.set_property("height", 180)
-        self.comp_sink_1.set_property("xpos", 320)
-        self.comp_sink_1.set_property("ypos", 0)
-        self.comp_sink_1.set_property("alpha", 1.0)
-
-        self.mixer_sink_1 = self.audio_mixer.get_request_pad("sink_%u")
-
-        self.src1.video_convert.get_static_pad("src").link(self.comp_sink_1)
-        self.src1.audio_convert.get_static_pad("src").link(self.mixer_sink_1)
-        
-        self.src2 = VideoSource(self.pipeline, vidsrc, "source2")
-
-        self.comp_sink_2 = self.compositor.get_request_pad("sink_%u")
-        self.comp_sink_2.set_property("width", 320)
-        self.comp_sink_2.set_property("height", 180)
-        self.comp_sink_2.set_property("xpos", 0)
-        self.comp_sink_2.set_property("ypos", 180)
-        self.comp_sink_2.set_property("alpha", 1.0)
-
-        self.mixer_sink_2 = self.audio_mixer.get_request_pad("sink_%u")
-
-        self.src2.video_convert.get_static_pad("src").link(self.comp_sink_2)
-        self.src2.audio_convert.get_static_pad("src").link(self.mixer_sink_2)
-
-        vidsrc = "file:///home/tom/media/AronChupa Little Sis Nora - Rave in the Grave-Zokn4WDPcHE.mkv"
-
-        self.src3 = VideoSource(self.pipeline, vidsrc, "source3")
-
-        self.comp_sink_3 = self.compositor.get_request_pad("sink_%u")
-        self.comp_sink_3.set_property("width", 320)
-        self.comp_sink_3.set_property("height", 180)
-        self.comp_sink_3.set_property("xpos", 320)
-        self.comp_sink_3.set_property("ypos", 180)
-        self.comp_sink_3.set_property("alpha", 1.0)
-
-        self.mixer_sink_3 = self.audio_mixer.get_request_pad("sink_%u")
-
-        self.src3.video_convert.get_static_pad("src").link(self.comp_sink_3)
-        self.src3.audio_convert.get_static_pad("src").link(self.mixer_sink_3)
-
         self.compositor.link(self.video_sink)
         self.audio_mixer.link(self.audio_sink)
+
+        # self.add_video("file:///home/tom/media/in.mkv", 320, 180, 0, 0)
+        # self.add_video("file:///home/tom/media/in.mkv", 320, 180, 320, 0)
+        # self.add_video("file:///home/tom/media/in.mkv", 320, 180, 0, 180)
+        # self.add_video("file:///home/tom/media/in.mkv", 320, 180, 320, 180)
 
         # Get pipeline bus.
         bus = self.pipeline.get_bus()
@@ -110,7 +54,7 @@ class Pipeline:
         bus.connect("message::error", self.on_error)
         # Call on_state_changed when state changes.
         bus.connect("message::state-changed", self.on_state_change)
-    
+
     def start(self):
         '''Starts the video pipeline.
 
@@ -118,6 +62,14 @@ class Pipeline:
 
         # Set pipline state as playing.
         self.pipeline.set_state(Gst.State.PLAYING)
+
+    def stop(self):
+        '''Stops the video pipeline.
+
+        '''
+
+        # Set pipline state as playing.
+        self.pipeline.set_state(Gst.State.NULL)
 
     def on_sync_message(self, bus, message):
         '''Called when sync message is recieved.
@@ -155,9 +107,36 @@ class Pipeline:
         old, new, pending = message.parse_state_changed()
         print("State change from {0} to {1}".format(Gst.Element.state_get_name(old), Gst.Element.state_get_name(new)))
 
+    def add_video(self, uri, width, height, xpos, ypos, comp_sink=None, mixer_sink=None):
+        ''' Adds a video to the compositor.
+
+        '''
+
+        src = VideoSource(self.pipeline, uri, self.get_unique_name(uri))
+
+        if comp_sink == None and mixer_sink == None:
+            comp_sink, mixer_sink = self.get_new_video_pads()
+
+        comp_sink.set_property("width", width)
+        comp_sink.set_property("height", height)
+        comp_sink.set_property("xpos", xpos)
+        comp_sink.set_property("ypos", ypos)
+
+        src.video_convert.get_static_pad("src").link(comp_sink)
+        src.audio_convert.get_static_pad("src").link(mixer_sink)
+
+        return comp_sink, mixer_sink, src
+
+    def get_new_video_pads(self):
+        video_pad = self.compositor.get_request_pad("sink_%u")
+        audio_pad = self.audio_mixer.get_request_pad("sink_%u")
+
+        return video_pad, audio_pad
+
     def get_unique_name(self, uri):
         uri = str(uri)
         if not (uri in self.names):
+            self.names.append(uri)
             return uri
         else:
-            self.get_unique_name(uri + "_1")
+            return self.get_unique_name(uri + "_1")
