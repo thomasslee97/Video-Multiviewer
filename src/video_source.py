@@ -35,7 +35,8 @@ class VideoSource:
         self.pipeline.add(self.queueaudio)
 
         # Set video to play.
-        self.uri_decode_bin.set_property("uri", src)
+        if src:
+            self.uri_decode_bin.set_property("uri", src)
 
         # Link video queue to converter.
         self.queuevideo.link(self.video_convert)

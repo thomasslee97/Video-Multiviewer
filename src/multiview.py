@@ -16,6 +16,7 @@ class Multiview:
         tiles (list): List of tiles in the multiview.
         width (int): Width of the multiview.
         height (int): Height of the multiview.
+        next_id (int): Next tile ID.
 
     '''
 
@@ -24,9 +25,10 @@ class Multiview:
 
         '''
 
-        self.tiles = []
+        self.tiles = {}
         self.width = width
         self.height = height
+        self.next_id = -1
 
     def add_tile(self, tile):
         '''Adds a tile to the tiles list.
@@ -36,7 +38,7 @@ class Multiview:
 
         '''
 
-        self.tiles.append(tile)
+        self.tiles[tile.id] = tile
 
     def find_tile_at_pos(self, x, y):
         '''Returns the tile containing the position x, y
@@ -58,6 +60,17 @@ class Multiview:
                 
         return None
 
+    def get_next_id(self):
+        '''Returns the next tile ID.
+
+        Returns:
+            next_id + 1
+
+        '''
+
+        self.next_id += 1
+        return self.next_id
+
 class Tile:
     '''Stores information about a tile.
 
@@ -74,7 +87,8 @@ class Tile:
 
     '''
 
-    def __init__(self):
+    def __init__(self, i):
+        self.id = i
         self.width = None
         self.height = None
         self.xpos = None

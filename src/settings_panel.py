@@ -49,6 +49,13 @@ class SettingsPanel(tk.Frame):
         self.button_audio_toggle = tk.Button(self, textvariable=self.audio_enabled_text, command=self.toggle_audio)
         self.button_audio_toggle.grid(sticky="WE")
 
+    def link_video_panel(self, panel):
+        '''Links the video panel to the settings panel.
+
+        '''
+
+        self.video_panel = panel
+
     def toggle_audio(self):
         '''Toggles audio on/off for the selected tile.
 
@@ -65,16 +72,27 @@ class SettingsPanel(tk.Frame):
         if self.selected_tile != None:
             uri = self.entry_video_input.get()
             if uri.upper() != "RTMP://...":
-                print(uri)
+                # Update the selected tile URI.
+                self.selected_tile.uri = uri
+
+                # Update the tiles list.
+                self.video_panel.multiview.tiles[self.selected_tile.id] = self.selected_tile
+
+                # Set the uri of the video source.
                 self.selected_tile.video_source.set_uri(uri)
 
     def set_selected_tile(self, tile):
         '''Set the currently selected tile.
 
+        Args:
+            tile (Tile): The tile to select.
+
         '''
         
+        # Store the selected tile.
         self.selected_tile = tile
 
+        # Use the tile URI if set, otherwise add placeholder.
         if tile.uri != None:
             self.entry_video_input.delete(0, tk.END)
             self.entry_video_input.insert(0, tile.uri)
@@ -82,6 +100,7 @@ class SettingsPanel(tk.Frame):
             self.entry_video_input.delete(0, tk.END)
             self.entry_video_input.insert(0, "rtmp://...")
 
+        # Set audio enabled buttons.
         if tile.audio_enabled == True:
             self.audio_enabled = tk.TRUE
 

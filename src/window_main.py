@@ -38,11 +38,14 @@ class MainWindow(tk.Frame):
         # Link settings panel to video panel.
         self.video_panel.link_settings_panel(self.panel_settings)
 
+        # Link video panel to settings panel.
+        self.panel_settings.link_video_panel(self.video_panel)
+
         # Add new, empty video to the video panel.
         pad_video, pad_audio, video_source = self.video_panel.pipeline.add_video("", PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 0)
 
         # Create root tile covering entire video panel.
-        tile_root = Tile()
+        tile_root = Tile(self.video_panel.multiview.get_next_id())
         tile_root.width = PREVIEW_WIDTH
         tile_root.height = PREVIEW_HEIGHT
         tile_root.xpos = 0
