@@ -160,6 +160,9 @@ class Pipeline:
         comp_sink.set_property("xpos", xpos)
         comp_sink.set_property("ypos", ypos)
 
+        # Mute volume.
+        mixer_sink.set_property("volume", 0)
+
         # Link the video and audio pads.
         src.video_convert.get_static_pad("src").link(comp_sink)
         src.audio_convert.get_static_pad("src").link(mixer_sink)

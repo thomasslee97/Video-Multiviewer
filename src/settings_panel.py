@@ -7,6 +7,7 @@ class SettingsPanel(tk.Frame):
         audio_enabled_text (tk.StringVar): Text to put on button_audio_toggle.
         audio_enabled (bool): Whether audio is enabled for a tile.
         selected_tile (Tile): The tile selected by the user.
+        vido_panel (VideoPlayer): The video player to control.
         label_video_settings (tk.Label): "Video Settings".
         label_video_input (tk.Label): "Video Source".
         entry_video_input (tk.Entry): URI entry field.
@@ -33,6 +34,7 @@ class SettingsPanel(tk.Frame):
         self.audio_enabled = False
 
         self.selected_tile = None
+        self.video_panel = None
 
         self.label_video_settings = tk.Label(self, text="Video Settings", font=("Arial", 14))
         self.label_video_settings.grid(sticky="WE", row=0, column=0)
@@ -63,6 +65,15 @@ class SettingsPanel(tk.Frame):
         self.audio_enabled = not self.audio_enabled
         
         self.audio_enabled_text.set("Disable Audio") if self.audio_enabled else self.audio_enabled_text.set("Enable Audio")
+
+        if self.audio_enabled:
+            self.selected_tile.pad_audio.set_property("volume", 1)
+        else:
+            self.selected_tile.pad_audio.set_property("volume", 0)
+
+        self.selected_tile.audio_enabled = self.audio_enabled
+
+        self.video_panel.multiview.tiles[self.selected_tile.id] = self.selected_tile
 
     def play_video(self):
         '''Plays a selected video tile.
