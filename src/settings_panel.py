@@ -1,14 +1,36 @@
 import tkinter as tk
 
 class SettingsPanel(tk.Frame):
+    '''Creates a settings panel.
+
+    Attributes:
+        audio_enabled_text (tk.StringVar): Text to put on button_audio_toggle.
+        audio_enabled (bool): Whether audio is enabled for a tile.
+        selected_tile (Tile): The tile selected by the user.
+        label_video_settings (tk.Label): "Video Settings".
+        label_video_input (tk.Label): "Video Source".
+        entry_video_input (tk.Entry): URI entry field.
+        button_play (tk.Button): When pressed, play the video in the selected tile.
+        button_audio_toggle (tk.Button): When pressed, toggle audio on/off on the selected tile.
+
+    '''
+
     def __init__(self, x, y, width, height):
-        tk.Frame.__init__(self)
+        '''Initialise the settings panel.
+
+        Args:
+            x (int): x position of the frame.
+            y (int): y position of the frame.
+            width (int): width of the frame.
+            height (int): height of the frame.
+
+        '''
+
+        tk.Frame.__init__(self, width=width, height=height)
         self.place(x=x, y=y, relwidth=0.5)
 
         self.audio_enabled_text = tk.StringVar(value="Enable Audio")
-        self.preview_stats_text = tk.StringVar(value="View Video Stats")
         self.audio_enabled = False
-        self.preview_stats_enabled = False
 
         self.selected_tile = None
 
@@ -28,11 +50,18 @@ class SettingsPanel(tk.Frame):
         self.button_audio_toggle.grid(sticky="WE")
 
     def toggle_audio(self):
+        '''Toggles audio on/off for the selected tile.
+
+        '''
         self.audio_enabled = not self.audio_enabled
         
         self.audio_enabled_text.set("Disable Audio") if self.audio_enabled else self.audio_enabled_text.set("Enable Audio")
 
     def play_video(self):
+        '''Plays a selected video tile.
+
+        '''
+
         if self.selected_tile != None:
             uri = self.entry_video_input.get()
             if uri.upper() != "RTMP://...":
@@ -40,6 +69,10 @@ class SettingsPanel(tk.Frame):
                 self.selected_tile.video_source.set_uri(uri)
 
     def set_selected_tile(self, tile):
+        '''Set the currently selected tile.
+
+        '''
+        
         self.selected_tile = tile
 
         if tile.uri != None:

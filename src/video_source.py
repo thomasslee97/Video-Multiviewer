@@ -58,7 +58,14 @@ class VideoSource:
             pad.link(self.queuevideo.get_static_pad("sink"))
         elif Gst.Caps.is_always_compatible(pad.get_current_caps(), audio_caps):
             pad.link(self.queueaudio.get_static_pad("sink"))
+
     def set_uri(self, uri):
+        '''Sets the uri of the video source.
+
+        WARNING: Restarts the pipeline.
+
+        '''
+        
         self.pipeline.set_state(Gst.State.NULL)
         self.uri_decode_bin.set_property("uri", uri)
         self.pipeline.set_state(Gst.State.PLAYING)
