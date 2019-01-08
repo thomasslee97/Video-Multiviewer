@@ -131,7 +131,7 @@ class VideoPlayer(tk.Frame):
             new_tile.xpos = tile_x + (tile_width / 2)
             tile_width = tile_width / 2
         else:
-            new_tile.xpos = tile_y            
+            new_tile.xpos = tile_x
 
         # Set tile dimensions.
         tile.width = tile_width
