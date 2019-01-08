@@ -27,27 +27,27 @@ class SettingsPanel(tk.Frame):
         '''
 
         tk.Frame.__init__(self, width=width, height=height)
-        self.place(x=x, y=y, relwidth=0.5)
+        self.place(x=x, y=y, relwidth=1)
 
         self.audio_enabled_text = tk.StringVar(value="Enable Audio")
         self.audio_enabled = False
 
         self.selected_tile = None
 
-        self.label_video_settings = tk.Label(self, text="Video Settings")
-        self.label_video_settings.grid(sticky="WE")
+        self.label_video_settings = tk.Label(self, text="Video Settings", font=("Arial", 14))
+        self.label_video_settings.grid(sticky="WE", row=0, column=0)
 
         self.label_video_input = tk.Label(self, text="Video Source")
-        self.label_video_input.grid(sticky="WE")
+        self.label_video_input.grid(sticky="WE", row=1, column=0)
 
         self.entry_video_input = tk.Entry(self, width=20)
-        self.entry_video_input.grid(sticky="WE")
+        self.entry_video_input.grid(sticky="WE", row=1, column=1)
 
         self.button_play = tk.Button(self, text="Play", command=self.play_video)
-        self.button_play.grid(sticky="WE")
+        self.button_play.grid(sticky="WE", row=1, column=2)
 
         self.button_audio_toggle = tk.Button(self, textvariable=self.audio_enabled_text, command=self.toggle_audio)
-        self.button_audio_toggle.grid(sticky="WE")
+        self.button_audio_toggle.grid(sticky="WE", row=2, column=2)
 
     def link_video_panel(self, panel):
         '''Links the video panel to the settings panel.

@@ -33,7 +33,7 @@ class MainWindow(tk.Frame):
         self.video_panel = VideoPlayer(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT)
 
         # Create settings panel.
-        self.panel_settings = SettingsPanel(0, PREVIEW_HEIGHT, WINDOW_WIDTH, CONTROL_PANEL_HEIGHT)
+        self.panel_settings = SettingsPanel(WINDOW_WIDTH * 0.01, PREVIEW_HEIGHT, WINDOW_WIDTH * 0.98, CONTROL_PANEL_HEIGHT)
 
         # Link settings panel to video panel.
         self.video_panel.link_settings_panel(self.panel_settings)
