@@ -16,19 +16,18 @@ class SettingsPanel(tk.Frame):
 
     '''
 
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, relwidth):
         '''Initialise the settings panel.
 
         Args:
             x (int): x position of the frame.
             y (int): y position of the frame.
-            width (int): width of the frame.
-            height (int): height of the frame.
+            relwidth (float): Relative width of the frame.
 
         '''
 
-        tk.Frame.__init__(self, width=width, height=height)
-        self.place(x=x, y=y, relwidth=1)
+        tk.Frame.__init__(self)
+        self.place(x=x, y=y, relwidth=relwidth)
 
         self.audio_enabled_text = tk.StringVar(value="Enable Audio")
         self.audio_enabled = False
