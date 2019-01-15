@@ -39,18 +39,94 @@ class Pipeline:
         # Audio mixer.
         self.audio_mixer = Gst.ElementFactory.make("audiomixer", "audiomixer")
 
+        # Splits video.
+        self.video_tee = Gst.ElementFactory.make("tee", "videotee")
+        # Splits audio.
+        self.audio_tee = Gst.ElementFactory.make("tee", "audiotee")
+
         # Consumes video.
         self.video_sink = Gst.ElementFactory.make("autovideosink", "videosink")
         # Consumes audio.
         self.audio_sink = Gst.ElementFactory.make("autoaudiosink", "audiosink")
 
+        # Encode video as x264.
+        self.x264_enc = Gst.ElementFactory.make("x264enc", "x264enc")
+
+        # Decode x264 for preview.
+        self.decodebin = Gst.ElementFactory.make("decodebin", "decodebin_post_x264")
+        self.decodebin.connect('pad-added', self.decode_src_created)
+
+        # FLV muxer.
+        self.flvmux = Gst.ElementFactory.make("flvmux", "flvmux")
+        self.flvmux.set_property("streamable", True)
+
+        # RTMP sink.
+        self.rtmp_sink = Gst.ElementFactory.make("rtmpsink", "rtmpsink")
+
+        # Queues to prevent pipeline blocking.
+        self.queue_post_x264_enc = Gst.ElementFactory.make("queue", "queue_post_x264_enc")
+        self.queue_pre_decodebin = Gst.ElementFactory.make("queue", "queue_pre_decodebin")
+        self.queue_post_decodebin = Gst.ElementFactory.make("queue", "queue_post_decodebin")
+        self.queue_pre_flvmux = Gst.ElementFactory.make("queue", "queue_pre_flvmux")
+        self.queue_post_flvmux = Gst.ElementFactory.make("queue", "queue_post_flvmux")
+        self.queue_audio_sink = Gst.ElementFactory.make("queue", "queue_audio_sink")
+        self.queue_audio_flvmux = Gst.ElementFactory.make("queue", "queue_audio_flvmux")
+
+        # Mixer/ compositor.
         self.pipeline.add(self.compositor)
         self.pipeline.add(self.audio_mixer)
-        self.pipeline.add(self.video_sink)  
-        self.pipeline.add(self.audio_sink)
 
-        self.compositor.link(self.video_sink)
-        self.audio_mixer.link(self.audio_sink)
+        # Video encoding.
+        self.pipeline.add(self.x264_enc)
+        self.pipeline.add(self.queue_post_x264_enc)
+        self.pipeline.add(self.video_tee)
+
+        # Decode x264 for preview.
+        self.pipeline.add(self.queue_pre_decodebin)
+        self.pipeline.add(self.decodebin)
+        self.pipeline.add(self.queue_post_decodebin)
+
+        # Mux audio and video.
+        self.pipeline.add(self.queue_pre_flvmux)
+        self.pipeline.add(self.flvmux)
+        self.pipeline.add(self.queue_post_flvmux)
+
+        # Audio tee.
+        self.pipeline.add(self.audio_tee)
+        self.pipeline.add(self.queue_audio_sink)
+        self.pipeline.add(self.queue_audio_flvmux)
+
+        # Sinks.
+        self.pipeline.add(self.video_sink)
+        self.pipeline.add(self.audio_sink)
+        self.pipeline.add(self.rtmp_sink)
+
+        # Encode video.
+        self.compositor.link(self.x264_enc)
+        self.x264_enc.link(self.queue_post_x264_enc)
+        self.queue_post_x264_enc.link(self.video_tee)
+
+        # Decode video for preview.
+        self.video_tee.link(self.queue_pre_decodebin)
+        self.queue_pre_decodebin.link(self.decodebin)
+        self.queue_post_decodebin.link(self.video_sink)
+
+        # Tee audio.
+        self.audio_mixer.link(self.audio_tee)
+
+        # Mux video and audio into FLV stream.
+        self.video_tee.link(self.queue_pre_flvmux)
+        self.queue_pre_flvmux.link(self.flvmux)
+        self.flvmux.link(self.queue_post_flvmux)
+        # Audio.
+        self.audio_tee.link(self.queue_audio_flvmux)
+        self.queue_audio_flvmux.link(self.flvmux)
+        # Output.
+        self.queue_post_flvmux.link(self.rtmp_sink)
+        
+        # Audio preview sink.
+        self.audio_tee.link(self.queue_audio_sink)
+        self.queue_audio_sink.link(self.audio_sink)
 
         # Get pipeline bus.
         bus = self.pipeline.get_bus()
@@ -64,6 +140,18 @@ class Pipeline:
         bus.connect("message::error", self.on_error)
         # Call on_state_changed when state changes.
         bus.connect("message::state-changed", self.on_state_change)
+
+    def decode_src_created(self, element, pad):
+        '''Called when a decode src is created on the decodebin.
+
+        '''
+
+        # Create representation of our video capabilities.
+        video_caps = Gst.caps_from_string("video/x-raw")
+        
+        # Set video pad.
+        if Gst.Caps.is_always_compatible(pad.get_current_caps(), video_caps):
+            pad.link(self.queue_post_decodebin.get_static_pad("sink"))
 
     def start(self):
         '''Starts the video pipeline.
@@ -197,3 +285,24 @@ class Pipeline:
             return uri
         else:
             return self.get_unique_name(uri + "_1")
+
+    def enable_output(self, url):
+        '''Enables the RTMP output. Restarts the pipeline.
+
+        Args:
+            url (str): URL to stream to.
+
+        '''
+
+        self.stop()
+        self.rtmp_sink.set_property("location", str(url))
+        self.start()
+
+    def disable_output(self):
+        '''Disables the RTMP output. Restarts the pipeline.
+
+        '''
+
+        self.stop()
+        self.rtmp_sink.set_property("location", None)
+        self.start()

@@ -2,6 +2,7 @@ import tkinter as tk
 from src.pipeline import Pipeline
 from src.video_player import VideoPlayer
 from src.settings_panel import SettingsPanel
+from src.output_panel import OutputPanel
 from src.multiview import Tile
 
 # Size of the video player.
@@ -33,13 +34,18 @@ class MainWindow(tk.Frame):
         self.video_panel = VideoPlayer(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT)
 
         # Create settings panel.
-        self.panel_settings = SettingsPanel(WINDOW_WIDTH * 0.01, PREVIEW_HEIGHT, 0.49)
+        self.panel_settings = SettingsPanel(WINDOW_WIDTH * 0.01, PREVIEW_HEIGHT, 0.48)
+
+        self.panel_output = OutputPanel((WINDOW_WIDTH / 2) + (WINDOW_WIDTH * 0.01), PREVIEW_HEIGHT, 0.48)
 
         # Link settings panel to video panel.
         self.video_panel.link_settings_panel(self.panel_settings)
 
         # Link video panel to settings panel.
         self.panel_settings.link_video_panel(self.video_panel)
+
+        # Link the video panel to the output panel.
+        self.panel_output.link_video_panel(self.video_panel)
 
         # Add new, empty video to the video panel.
         pad_video, pad_audio, video_source = self.video_panel.pipeline.add_video("", PREVIEW_WIDTH, PREVIEW_HEIGHT, 0, 0)
@@ -61,3 +67,5 @@ class MainWindow(tk.Frame):
 
         # Select the new tile.
         self.video_panel.select_tile(tile_root)
+
+        self.video_panel.pipeline.start()

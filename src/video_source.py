@@ -13,7 +13,7 @@ class VideoSource:
         self.name = str(name)
 
         # URI decode bin, reads file/rtmp.
-        self.uri_decode_bin = Gst.ElementFactory.make("uridecodebin", "decodebin" + name)
+        self.uri_decode_bin = Gst.ElementFactory.make("uridecodebin", "uridecodebin" + name)
         # Call decode_src_added when the file has been loaded.
         self.uri_decode_bin.connect('pad-added', self.decode_src_created)
 
